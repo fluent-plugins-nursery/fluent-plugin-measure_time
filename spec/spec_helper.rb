@@ -1,6 +1,7 @@
 # encoding: UTF-8
 require 'rubygems'
 require 'bundler'
+require 'fluent/load'
 Bundler.setup(:default, :test)
 Bundler.require(:default, :test)
 
@@ -10,4 +11,4 @@ require 'pry'
 
 $TESTING=true
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
-require 'lib/fluent/mixin/elapsed_time'
+require 'fluent/mixin/elapsed_time'

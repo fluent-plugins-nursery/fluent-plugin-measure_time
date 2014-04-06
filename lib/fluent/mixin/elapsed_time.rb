@@ -8,15 +8,19 @@ module Fluent
     end
 
     def configure_with_elapsed(conf)
-      self.configure_without_elapsed(conf)
+      configure_without_elapsed(conf)
       if element = conf.elements.first { |element| element.name == 'elapsed' }
         @elapsed = ElapsedMeasure.new(self, log)
         @elapsed.configure(element)
+        # #start and #stop methods must be extended in concrete input plugins
+        # because most of built-in input plugins do not call `super`
         klass = self.class
-        klass.__send__(:alias_method, :start_without_elapsed, :start)
-        klass.__send__(:alias_method, :start, :start_with_elapsed)
-        klass.__send__(:alias_method, :shutdown_without_elapsed, :shutdown)
-        klass.__send__(:alias_method, :shutdown, :shutdown_with_elapsed)
+        unless klass.method_defined?(:start_without_elapsed)
+          klass.__send__(:alias_method, :start_without_elapsed, :start)
+          klass.__send__(:alias_method, :start, :start_with_elapsed)
+          klass.__send__(:alias_method, :shutdown_without_elapsed, :shutdown)
+          klass.__send__(:alias_method, :shutdown, :shutdown_with_elapsed)
+        end
       end
     end
 
@@ -115,12 +119,15 @@ module Fluent
         times = @times.dup
         self.clear
       end
+      triple = nil
       unless times.empty?
         num = times.size
         max = num == 0 ? 0 : times.max
         avg = num == 0 ? 0 : times.map(&:to_f).inject(:+) / num.to_f
-        Engine.emit(@tag, now, {:num => num, :max => max, :avg => avg})
+        triple = [@tag, now, {:num => num, :max => max, :avg => avg}]
+        Engine.emit(*triple)
       end
+      triple
     end
 
     private
