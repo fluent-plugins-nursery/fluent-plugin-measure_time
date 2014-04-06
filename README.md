@@ -10,7 +10,7 @@ Use RubyGems:
 
     gem install fluent-mixin-elapsed_time
 
-Run Fluentd with -r option to require this gem.
+Run Fluentd with -r option to require this gem. This will automatically extends all input plugins (actually, `Input` base class). 
 
     fluentd -c fluent.conf -r 'fluent/mixin/elapsed_time'
 
@@ -36,37 +36,15 @@ Example:
 </match>
 ```
 
-This example hooks the `on_message` method of in_forward plugin to measure elapsed times.
+This example hooks the [on_message](https://github.com/fluent/fluentd/blob/e5a9a4ca03d18b45fdb89061d8251592a044e9fc/lib/fluent/plugin/in_forward.rb#L112) method of in_forward plugin, and measures how long it takes for processing.
 
-This plugin outputs the statistics of elapsed times in each interval like below:
+And, this plugin emits the statistics of measured elapsed times in each specified interval like below:
 
 ```
 elapsed: {"max":1.011,"avg":0.002","num":10}
 ```
 
-where `max` and `avg` are the maximum and average elapsed times, and `num` is the number of being called. 
-
-## Illustration
-
-Following figure draws the conceptual mechanism of how this module measures elapsed times.
-
-```
-     +–––––––––––––+    +––––––––––––––+   +––––––––––––––+   +–––––––––––––––+
-     |   Engine    |    |  Input       |   |   Output     |   |   Output      |
-     +––––––+––––––+    +––––––+–––––––+   +––––––+–––––––+   +–––––––+–––––––+
-            |                  |                  |                   |
-            +––––––––––––––––––>                  |                   |
-            |  hooked method   | start = Time.now |                   |
-            |                  +––––––––––––––––––>                   |
-            |                  |      #emit       +–––––––––––––––––––>        
-            |                  |                  |     #emit         |        
-            |                  |                  <– – – – –  – – – – +        
-            |                  <– – – – – – – – – +                   |
-            |                  | elapsed = Time.now - start           |
-            <– – – – – - – – – +                  |                   |
-            |                  |                  |                   |
-            +                  +                  +                   +
-```
+where `max` and `avg` are the maximum and average elapsed times, and `num` is the number of being called in each interval.
 
 ## Parameters
 
