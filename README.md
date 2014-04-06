@@ -36,7 +36,7 @@ Example:
 </match>
 ```
 
-This example hooks the `#on_message` method of in_forward plugin for measuring elapsed times which the method takes.
+This example hooks the `on_message` method of in_forward plugin to measure elapsed times.
 
 This plugin outputs the statistics of elapsed times in each interval like below:
 
@@ -80,7 +80,8 @@ Following figure draws the conceptual mechanism of how this module measures elap
 
 * hook (required)
 
-    Specify the method to hook. You can also explicitly explicitly specify the class name like `Fluent::ForwardOutput#on_message`
+    Specify the method to hook. You can also explicitly specify the class name like `Fluent::ForwardOutput.on_message`.
+    (EXCUSE: Fluentd treats strings after # as a comment, so the form like `Fluent::ForwardInput#on_message` could not be used)
     
 ## ChangeLog
 

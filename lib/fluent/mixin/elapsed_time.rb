@@ -46,7 +46,7 @@ module Fluent
       @tag = conf['tag'] || 'elapsed'
       @interval = conf['interval'].to_i || 60
       unless @hook = conf['hook']
-        raise Fluent::ConfigError, '<elapsed></elpased> directive does not specify `hook` option. Specify as `#on_message`'
+        raise Fluent::ConfigError, '<elapsed></elpased> directive does not specify `hook` option. Specify as `on_message`'
       end
       apply_hook(@hook)
     end
@@ -60,17 +60,18 @@ module Fluent
     end
 
     def apply_hook(hook)
-      if hook.include?('#')
-        klass_name, method_name = hook.split('#', 2)
-        klass = klass_name.constantize
+      if hook.include?('.')
+        klass_name, method_name = hook.split('.', 2)
+        klass = constantize(klass_name)
       else
         klass = @input.class
         method_name = hook
       end
       old_method_name = "#{method_name}_without_elapsed".to_sym 
       klass.__send__(:alias_method, old_method_name, method_name)
+      elapsed = self
       klass.__send__(:define_method, method_name) do |*args|
-        @elapsed.measure_time(hook) do
+        elapsed.measure_time(hook) do
           self.__send__(old_method_name, *args)
         end
       end
@@ -119,6 +120,34 @@ module Fluent
         max = num == 0 ? 0 : times.max
         avg = num == 0 ? 0 : times.map(&:to_f).inject(:+) / num.to_f
         Engine.emit(@tag, now, {:num => num, :max => max, :avg => avg})
+      end
+    end
+
+    private
+    # File activesupport/lib/active_support/inflector/methods.rb, line 219
+    def constantize(camel_cased_word)
+      names = camel_cased_word.split('::')
+      names.shift if names.empty? || names.first.empty?
+
+      names.inject(Object) do |constant, name|
+        if constant == Object
+          constant.const_get(name)
+        else
+          candidate = constant.const_get(name)
+          next candidate if constant.const_defined?(name, false)
+          next candidate unless Object.const_defined?(name)
+
+          # Go down the ancestors to check it it's owned
+          # directly before we reach Object or the end of ancestors.
+          constant = constant.ancestors.inject do |const, ancestor|
+            break const    if ancestor == Object
+            break ancestor if ancestor.const_defined?(name, false)
+            const
+          end
+
+          # owner is in Object, so raise
+          constant.const_get(name, false)
+        end
       end
     end
   end
