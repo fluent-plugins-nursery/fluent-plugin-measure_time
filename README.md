@@ -11,13 +11,13 @@ Use RubyGems:
 
     gem install fluent-mixin-elapsed_time
 
-Run Fluentd with -r option to require this gem. This will automatically extends all input plugins (actually, `Input` base class). 
+Run Fluentd with -r option to require this gem. This will automatically extends all input and output plugins (actually, `Input` and `Output` base class). 
 
     fluentd -c fluent.conf -r 'fluent/mixin/elapsed_time'
 
 ## Configuration
 
-This mixin module extends arbitrary input plugins so that it can use `<elapsed></elapsed>` directive to measure elapsed times. 
+This mixin module extends arbitrary plugins so that it can use `<elapsed></elapsed>` directive to measure elapsed times. 
 
 Example:
 
