@@ -43,13 +43,13 @@ describe Fluent::ForwardInput do
       <elapsed>
         tag test
         interval 10
-        hook Fluent::ForwardInput::Handler.on_read
+        hook on_message
       </elapsed>
     ]}
     let(:subject) { driver.instance.elapsed }
     its(:tag) { should == 'test' }
     its(:interval) { should == 10 }
-    its(:hook) { should == 'Fluent::ForwardInput::Handler.on_read' }
+    its(:hook) { should == 'on_message' }
   end
 
   describe 'test emit' do
@@ -57,7 +57,8 @@ describe Fluent::ForwardInput do
       <elapsed>
         tag elapsed
         interval 1
-        hook on_message
+        # hook Fluent::ForwardInput::Handler.on_read # not support inner class yet
+        hook Fluent::ForwardInput.on_message
       </elapsed>
     ]}
     it 'should flush' do
