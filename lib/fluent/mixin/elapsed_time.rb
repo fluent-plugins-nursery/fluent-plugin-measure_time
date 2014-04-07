@@ -24,6 +24,10 @@ module Fluent
       end
     end
 
+    def elapsed
+      @elapsed
+    end
+
     def start_with_elapsed
       start_without_elapsed
       @elapsed.start if @elapsed
@@ -36,6 +40,7 @@ module Fluent
   end
 
   Input.__send__(:include, ElapsedTimable)
+  Output.__send__(:include, ElapsedTimable)
 
   class ElapsedTime
     attr_reader :input, :log, :times, :mutex, :thread, :tag, :interval, :hook
@@ -72,21 +77,23 @@ module Fluent
         method_name = hook
       end
       old_method_name = "#{method_name}_without_elapsed".to_sym 
-      klass.__send__(:alias_method, old_method_name, method_name)
-      elapsed = self
-      klass.__send__(:define_method, method_name) do |*args|
-        elapsed.measure_time(hook) do
-          self.__send__(old_method_name, *args)
+      unless klass.method_defined?(old_method_name)
+        klass.__send__(:alias_method, old_method_name, method_name)
+        klass.__send__(:define_method, method_name) do |*args|
+          elapsed.measure_time(klass, method_name) do
+            self.__send__(old_method_name, *args)
+          end
         end
       end
     end
 
-    def measure_time(hook)
+    def measure_time(klass, method_name)
       started = Time.now
-      yield
+      output = yield
       elapsed = (Time.now - started).to_f
-      log.info "in_forward: elapsed time at #{hook} is #{elapsed} sec"
+      log.info "elapsed time at #{klass}##{method_name} is #{elapsed} sec"
       @mutex.synchronize { self.add(elapsed) }
+      output
     end
 
     def start
