@@ -1,6 +1,7 @@
 # fluent-mixin-elapsed_time
 
 [![Build Status](https://secure.travis-ci.org/sonots/fluent-mixin-elapsed_time.png?branch=master)](http://travis-ci.org/sonots/fluent-mixin-elapsed_time)
+[![Code Climate](https://codeclimate.com/github/sonots/fluent-mixin-elapsed_time.png)](https://codeclimate.com/github/sonots/fluent-mixin-elapsed_time)
 
 Fluentd mixin to measure elapsed time to process messages
 
