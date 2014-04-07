@@ -1,7 +1,7 @@
 require 'fluent/input'
 
 module Fluent
-  module ElapsedMeasurable
+  module ElapsedTimable
     def self.included(klass)
       klass.__send__(:alias_method, :configure_without_elapsed, :configure)
       klass.__send__(:alias_method, :configure, :configure_with_elapsed)
@@ -10,7 +10,7 @@ module Fluent
     def configure_with_elapsed(conf)
       configure_without_elapsed(conf)
       if element = conf.elements.first { |element| element.name == 'elapsed' }
-        @elapsed = ElapsedMeasure.new(self, log)
+        @elapsed = ElapsedTime.new(self, log)
         @elapsed.configure(element)
         # #start and #stop methods must be extended in concrete input plugins
         # because most of built-in input plugins do not call `super`
@@ -35,9 +35,9 @@ module Fluent
     end
   end
 
-  Input.__send__(:include, ElapsedMeasurable)
+  Input.__send__(:include, ElapsedTimable)
 
-  class ElapsedMeasure
+  class ElapsedTime
     attr_reader :input, :log, :times, :mutex, :thread, :tag, :interval, :hook
     def initialize(input, log)
       @input = input
