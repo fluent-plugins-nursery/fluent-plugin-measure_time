@@ -9,7 +9,7 @@ module Fluent
 
     def configure_with_elapsed(conf)
       configure_without_elapsed(conf)
-      if element = conf.elements.first { |element| element.name == 'elapsed' }
+      if element = conf.elements.select { |element| element.name == 'elapsed' }.first
         @elapsed = ElapsedTime.new(self, log)
         @elapsed.configure(element)
         # #start and #stop methods must be extended in concrete input plugins
@@ -55,7 +55,7 @@ module Fluent
       @tag = conf['tag'] || 'elapsed'
       @interval = conf['interval'].to_i || 60
       unless @hook = conf['hook']
-        raise Fluent::ConfigError, '<elapsed></elpased> directive does not specify `hook` option. Specify as `on_message`'
+        raise Fluent::ConfigError, '`hook` option must be specified in <elapsed></elpased> directive'
       end
       apply_hook(@hook)
     end
