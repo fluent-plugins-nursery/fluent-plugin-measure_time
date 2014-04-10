@@ -1,3 +1,9 @@
+## 0.0.4  (2014/04/10)
+
+Fixes:
+
+* Fix to apply only plugins having <elapsed></elapsed> directive
+
 ## 0.0.3  (2014/04/08)
 
 Enhancements:
