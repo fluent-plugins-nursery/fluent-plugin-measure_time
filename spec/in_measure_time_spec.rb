@@ -3,7 +3,19 @@ require_relative 'spec_helper'
 require 'fluent/plugin/in_forward'
 require 'fluent/plugin/out_stdout'
 
-describe Fluent::ForwardInput do
+describe Fluent::MeasureTimeInput do
+  before { Fluent::Test.setup }
+
+  def create_driver(conf=%[])
+    Fluent::Test::InputTestDriver.new(Fluent::MeasureTimeInput).configure(conf)
+  end
+
+  describe 'test configure' do
+    it { expect { create_driver }.not_to raise_error }
+  end
+end
+
+describe "extends Fluent::ForwardInput" do
   before { Fluent::Test.setup }
 
   def create_driver(conf=CONFIG)
@@ -71,7 +83,7 @@ describe Fluent::ForwardInput do
   end
 end
 
-describe Fluent::StdoutOutput do
+describe "extends Fluent::StdoutOutput" do
   before { Fluent::Test.setup }
 
   def create_driver(conf=CONFIG, tag = 'test')

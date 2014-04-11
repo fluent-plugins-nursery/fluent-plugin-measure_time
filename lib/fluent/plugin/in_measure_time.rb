@@ -1,6 +1,10 @@
 require 'fluent/input'
 
 module Fluent
+  class MeasureTimeInput < Input
+    # this does not anything, a dummy
+  end
+
   module MeasureTimable
     def self.included(klass)
       klass.__send__(:alias_method, :configure_without_measure, :configure)
