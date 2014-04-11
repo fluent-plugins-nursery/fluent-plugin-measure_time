@@ -1,38 +1,38 @@
-# fluent-mixin-elapsed_time
+# fluent-plugin-measure
 
-[![Build Status](https://secure.travis-ci.org/sonots/fluent-mixin-elapsed_time.png?branch=master)](http://travis-ci.org/sonots/fluent-mixin-elapsed_time)
-[![Code Climate](https://codeclimate.com/github/sonots/fluent-mixin-elapsed_time.png)](https://codeclimate.com/github/sonots/fluent-mixin-elapsed_time)
+[![Build Status](https://secure.travis-ci.org/sonots/fluent-plugin-measure.png?branch=master)](http://travis-ci.org/sonots/fluent-plugin-measure)
+[![Code Climate](https://codeclimate.com/github/sonots/fluent-plugin-measure.png)](https://codeclimate.com/github/sonots/fluent-plugin-measure)
 
-Fluentd mixin to measure elapsed time to process messages
+Fluentd plugin to measure elapsed time to process messages
 
 ## Installation
 
 Use RubyGems:
 
-    gem install fluent-mixin-elapsed_time
-
-Run Fluentd with -r option to require this gem. This will automatically extends all input and output plugins (actually, `Input` and `Output` base class). 
-
-    fluentd -c fluent.conf -r 'fluent/mixin/elapsed_time'
+    gem install fluent-plugin-measure_time
 
 ## Configuration
 
-This mixin module extends arbitrary plugins so that it can use `<elapsed></elapsed>` directive to measure elapsed times. 
+This plugin is doing something tricky, which extends arbitrary plugins so that it can use `<measure></measure>` directive to measure elapsed times. 
 
 Example:
 
 ```apache
 <source>
-  type forward
-  port 24224
-  <elapsed>
-    tag elapsed
-    interval 60
-    hook on_message
-  </elapsed>
+  type measure # this is just to let fluentd `require` measure plugi
 </source>
 
-<match elapsed>
+<source>
+  type forward
+  port 24224
+  <measure>
+    tag measure
+    interval 60
+    hook on_message
+  </measure>
+</source>
+
+<match measure>
   type stdout
 </match>
 ```
@@ -55,7 +55,7 @@ where `max` and `avg` are the maximum and average elapsed times, and `num` is th
 
 * tag
 
-    The output tag name. Default is `elapsed`
+    The output tag name. Default is `measure`
 
 * hook (required)
 
