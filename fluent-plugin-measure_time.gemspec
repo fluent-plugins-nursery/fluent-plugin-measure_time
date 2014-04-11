@@ -2,12 +2,12 @@
 $:.push File.expand_path('../lib', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.name        = "fluent-mixin-elapsed_time"
+  gem.name        = "fluent-plugin-measure_time"
   gem.version     = "0.0.4"
   gem.authors     = ["Naotoshi Seo"]
   gem.email       = "sonots@gmail.com"
-  gem.homepage    = "https://github.com/sonots/fluent-mixin-elapsed_time"
-  gem.description = "Fluentd mixin to measure elapsed time to process messages"
+  gem.homepage    = "https://github.com/sonots/fluent-plugin-measure_time"
+  gem.description = "Fluentd plugin to measure elapsed time to process messages"
   gem.summary     = gem.description
   gem.licenses    = ["MIT"]
   gem.has_rdoc    = false

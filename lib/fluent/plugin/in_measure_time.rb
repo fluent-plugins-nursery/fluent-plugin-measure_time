@@ -1,48 +1,48 @@
 require 'fluent/input'
 
 module Fluent
-  module ElapsedTimable
+  module MeasureTimable
     def self.included(klass)
-      klass.__send__(:alias_method, :configure_without_elapsed, :configure)
-      klass.__send__(:alias_method, :configure, :configure_with_elapsed)
+      klass.__send__(:alias_method, :configure_without_measure, :configure)
+      klass.__send__(:alias_method, :configure, :configure_with_measure)
     end
 
-    def configure_with_elapsed(conf)
-      configure_without_elapsed(conf)
-      if element = conf.elements.select { |element| element.name == 'elapsed' }.first
-        @elapsed = ElapsedTime.new(self, log)
-        @elapsed.configure(element)
+    def configure_with_measure(conf)
+      configure_without_measure(conf)
+      if element = conf.elements.select { |element| element.name == 'measure' }.first
+        @measure = MeasureTime.new(self, log)
+        @measure.configure(element)
         # #start and #stop methods must be extended in concrete input plugins
         # because most of built-in input plugins do not call `super`
         klass = self.class
-        unless klass.method_defined?(:start_without_elapsed)
-          klass.__send__(:alias_method, :start_without_elapsed, :start)
-          klass.__send__(:alias_method, :start, :start_with_elapsed)
-          klass.__send__(:alias_method, :shutdown_without_elapsed, :shutdown)
-          klass.__send__(:alias_method, :shutdown, :shutdown_with_elapsed)
+        unless klass.method_defined?(:start_without_measure)
+          klass.__send__(:alias_method, :start_without_measure, :start)
+          klass.__send__(:alias_method, :start, :start_with_measure)
+          klass.__send__(:alias_method, :shutdown_without_measure, :shutdown)
+          klass.__send__(:alias_method, :shutdown, :shutdown_with_measure)
         end
       end
     end
 
-    def elapsed
-      @elapsed
+    def measure
+      @measure
     end
 
-    def start_with_elapsed
-      start_without_elapsed
-      @elapsed.start if @elapsed
+    def start_with_measure
+      start_without_measure
+      @measure.start if @measure
     end
 
-    def shutdown_with_elapsed
-      shutdown_without_elapsed
-      @elapsed.stop if @elapsed
+    def shutdown_with_measure
+      shutdown_without_measure
+      @measure.stop if @measure
     end
   end
 
-  Input.__send__(:include, ElapsedTimable)
-  Output.__send__(:include, ElapsedTimable)
+  Input.__send__(:include, MeasureTimable)
+  Output.__send__(:include, MeasureTimable)
 
-  class ElapsedTime
+  class MeasureTime
     attr_reader :input, :log, :times, :mutex, :thread, :tag, :interval, :hook
     def initialize(input, log)
       @input = input
@@ -52,10 +52,10 @@ module Fluent
     end
 
     def configure(conf)
-      @tag = conf['tag'] || 'elapsed'
+      @tag = conf['tag'] || 'measure'
       @interval = conf['interval'].to_i || 60
       unless @hook = conf['hook']
-        raise Fluent::ConfigError, '`hook` option must be specified in <elapsed></elpased> directive'
+        raise Fluent::ConfigError, '`hook` option must be specified in <measure></elpased> directive'
       end
       apply_hook(@hook)
     end
@@ -76,11 +76,11 @@ module Fluent
         klass = @input.class
         method_name = hook
       end
-      old_method_name = "#{method_name}_without_elapsed".to_sym 
+      old_method_name = "#{method_name}_without_measure".to_sym 
       unless klass.method_defined?(old_method_name)
         klass.__send__(:alias_method, old_method_name, method_name)
         klass.__send__(:define_method, method_name) do |*args|
-          elapsed.measure_time(klass, method_name) do
+          measure.measure_time(klass, method_name) do
             self.__send__(old_method_name, *args)
           end
         end
@@ -90,9 +90,9 @@ module Fluent
     def measure_time(klass, method_name)
       started = Time.now
       output = yield
-      elapsed = (Time.now - started).to_f
-      log.info "elapsed time at #{klass}##{method_name} is #{elapsed} sec"
-      @mutex.synchronize { self.add(elapsed) }
+      measure = (Time.now - started).to_f
+      log.debug "elapsed time at #{klass}##{method_name} is #{measure} sec"
+      @mutex.synchronize { self.add(measure) }
       output
     end
 

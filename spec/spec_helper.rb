@@ -11,4 +11,4 @@ require 'pry'
 
 $TESTING=true
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
-require 'fluent/mixin/elapsed_time'
+require 'fluent/plugin/in_measure_time'
