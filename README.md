@@ -15,7 +15,7 @@ Use RubyGems:
 
 This plugin is doing something tricky, which extends arbitrary plugins so that it can use `<measure_time></measure_time>` directive to measure elapsed times. 
 
-Example:
+**Example 1:**
 
 ```apache
 <source>
@@ -45,7 +45,7 @@ measure_time: {"time":0.000849735,"class":"Fluent::ForwardInput","hook":"on_mess
 
 where `time` denotes the measured elapsed time, and `class`, `hook`, and `object_id` denotes the hooked class, the hooked method, and the object id of the plugin instance. 
 
-Example: interval
+**Example 2: interval**
 
 With `interval` option, this plugin compute statistics of measured elapsed times in each interval
 
