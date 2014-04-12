@@ -33,6 +33,7 @@ module Fluent
     attr_reader :plugin, :log, :times, :mutex, :thread, :tag, :interval, :hook
     def initialize(plugin, log)
       @plugin = plugin
+      @klass = @plugin.class
       @log = log
       @times = []
       @mutex = Mutex.new
@@ -40,10 +41,24 @@ module Fluent
 
     def configure(conf)
       @tag = conf['tag'] || 'measure_time'
-      @interval = conf['interval'].to_i || 60
       unless @hook = conf['hook']
         raise Fluent::ConfigError, '`hook` option must be specified in <measure_time></measure_time> directive'
       end
+      @hook_msg = {"class" => @klass, "hook" => @hook, "object_id" => @plugin.object_id}
+      @interval = conf['interval'].to_i if conf['interval']
+      @add_or_emit_proc =
+        if @interval
+          # add to calculate statistics in each interval
+          Proc.new {|elapsed|
+            @mutex.synchronize { @times << elapsed }
+          }
+        else
+          # emit information immediately
+          Proc.new {|elapsed|
+            msg = {"time" => elapsed}.merge(@hook_msg)
+            ::Fluent::Engine.emit(@tag, ::Fluent::Engine.now, msg)
+          }
+        end
       apply_hook
     end
 
@@ -69,16 +84,18 @@ EOF
       started = Time.now
       output = yield
       elapsed = (Time.now - started).to_f
-      log.debug "elapsed time at #{@plugin.class}##{@hook} is #{elapsed} sec"
-      @mutex.synchronize { @times << elapsed }
+      log.debug "elapsed time at #{@klass}##{@hook} is #{elapsed} sec"
+      @add_or_emit_proc.call(elapsed)
       output
     end
 
     def start
+      return unless @interval
       @thread = Thread.new(&method(:run))
     end
 
     def stop
+      return unless @interval
       @thread.terminate
       @thread.join
     end
@@ -93,7 +110,7 @@ EOF
             @last_checked = now
           end
         rescue => e
-          log.warn "in_measure_time: hook #{klass}##{method_name} #{e.class} #{e.message} #{e.backtrace.first}"
+          log.warn "in_measure_time: hook #{@klass}##{@hook} #{e.class} #{e.message} #{e.backtrace.first}"
         end
       end
     end
@@ -109,7 +126,7 @@ EOF
         num = times.size
         max = num == 0 ? 0 : times.max
         avg = num == 0 ? 0 : times.map(&:to_f).inject(:+) / num.to_f
-        triple = [@tag, now, {:num => num, :max => max, :avg => avg}]
+        triple = [@tag, now, {:max => max, :avg => avg, :num => num}.merge(@hook_msg)]
         Engine.emit(*triple)
       end
       triple
