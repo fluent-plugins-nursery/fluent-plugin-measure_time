@@ -19,6 +19,7 @@ describe "extends Fluent::ForwardInput" do
   before { Fluent::Test.setup }
 
   def create_driver(conf=CONFIG)
+    Fluent::MeasureTimeInput.new.configure("")
     Fluent::Test::InputTestDriver.new(Fluent::ForwardInput).configure(conf)
   end
 
@@ -52,13 +53,13 @@ describe "extends Fluent::ForwardInput" do
 
   describe 'test configure' do
     let(:config) {CONFIG + %[
-      <measure>
+      <measure_time>
         tag test
         interval 10
         hook on_message
-      </measure>
+      </measure_time>
     ]}
-    let(:subject) { driver.instance.measure }
+    let(:subject) { driver.instance.measure_time }
     its(:tag) { should == 'test' }
     its(:interval) { should == 10 }
     its(:hook) { should == 'on_message' }
@@ -66,19 +67,18 @@ describe "extends Fluent::ForwardInput" do
 
   describe 'test emit' do
     let(:config) {CONFIG + %[
-      <measure>
-        tag measure
+      <measure_time>
+        tag measure_time
         interval 1
-        # hook Fluent::ForwardInput::Handler.on_read # not support inner class yet
-        hook Fluent::ForwardInput.on_message
-      </measure>
+        hook on_message
+      </measure_time>
     ]}
     it 'should flush' do
       d = driver.instance
       d.__send__(:on_message, ['tag1', 0, {'a'=>1}].to_msgpack)
-      triple = d.measure.flush(0)
-      triple[0].should == 'measure'
-      triple[2].keys.should =~ [:num, :max, :avg]
+      triple = d.measure_time.flush(0)
+      triple[0].should == 'measure_time'
+      triple[2].keys.should =~ [:num, :max, :avg, :class, :hook, :object_id]
     end
   end
 end
@@ -97,13 +97,13 @@ describe "extends Fluent::StdoutOutput" do
 
   describe 'test configure' do
     let(:config) {CONFIG + %[
-      <measure>
+      <measure_time>
         tag test
         interval 10
         hook emit
-      </measure>
+      </measure_time>
     ]}
-    let(:subject) { driver.instance.instance_variable_get(:@measure) }
+    let(:subject) { driver.instance.measure_time }
     its(:tag) { should == 'test' }
     its(:interval) { should == 10 }
     its(:hook) { should == 'emit' }
@@ -111,18 +111,34 @@ describe "extends Fluent::StdoutOutput" do
 
   describe 'test emit' do
     let(:config) {CONFIG + %[
-      <measure>
-        tag measure
+      <measure_time>
+        tag measure_time
+        hook emit
+      </measure_time>
+    ]}
+    it 'should flush' do
+      time = Fluent::Engine.now
+      Fluent::Engine.stub(:now).and_return(time)
+      Fluent::Engine.should_receive(:emit) # .with("measure_time", time, {})
+      d = driver.instance
+      d.emit('tag1', Fluent::OneEventStream.new(0, {'a'=>1}), Fluent::NullOutputChain.instance)
+    end
+  end
+
+  describe 'test interval' do
+    let(:config) {CONFIG + %[
+      <measure_time>
+        tag measure_time
         interval 1
         hook emit
-      </measure>
+      </measure_time>
     ]}
     it 'should flush' do
       d = driver.instance
       d.emit('tag1', Fluent::OneEventStream.new(0, {'a'=>1}), Fluent::NullOutputChain.instance)
-      triple = d.measure.flush(0)
-      triple[0].should == 'measure'
-      triple[2].keys.should =~ [:num, :max, :avg]
+      triple = d.measure_time.flush(0)
+      triple[0].should == 'measure_time'
+      triple[2].keys.should =~ [:num, :max, :avg, :class, :hook, :object_id]
     end
   end
 end

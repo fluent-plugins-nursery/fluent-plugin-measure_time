@@ -44,7 +44,7 @@ module Fluent
       unless @hook = conf['hook']
         raise Fluent::ConfigError, '`hook` option must be specified in <measure_time></measure_time> directive'
       end
-      @hook_msg = {"class" => @klass, "hook" => @hook, "object_id" => @plugin.object_id}
+      @hook_msg = {:class => @klass, :hook => @hook, :object_id => @plugin.object_id}
       @interval = conf['interval'].to_i if conf['interval']
       @add_or_emit_proc =
         if @interval
@@ -55,7 +55,7 @@ module Fluent
         else
           # emit information immediately
           Proc.new {|elapsed|
-            msg = {"time" => elapsed}.merge(@hook_msg)
+            msg = {:time => elapsed}.merge(@hook_msg)
             ::Fluent::Engine.emit(@tag, ::Fluent::Engine.now, msg)
           }
         end
