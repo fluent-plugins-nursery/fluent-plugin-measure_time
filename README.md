@@ -1,7 +1,7 @@
-# fluent-plugin-measure
+# fluent-plugin-measure_time
 
-[![Build Status](https://secure.travis-ci.org/sonots/fluent-plugin-measure.png?branch=master)](http://travis-ci.org/sonots/fluent-plugin-measure)
-[![Code Climate](https://codeclimate.com/github/sonots/fluent-plugin-measure.png)](https://codeclimate.com/github/sonots/fluent-plugin-measure)
+[![Build Status](https://secure.travis-ci.org/sonots/fluent-plugin-measure_time.png?branch=master)](http://travis-ci.org/sonots/fluent-plugin-measure_time)
+[![Code Climate](https://codeclimate.com/github/sonots/fluent-plugin-measure_time.png)](https://codeclimate.com/github/sonots/fluent-plugin-measure_time)
 
 Fluentd plugin to measure elapsed time to process messages
 
@@ -13,26 +13,27 @@ Use RubyGems:
 
 ## Configuration
 
-This plugin is doing something tricky, which extends arbitrary plugins so that it can use `<measure></measure>` directive to measure elapsed times. 
+This plugin is doing something tricky, which extends arbitrary plugins so that it can use `<measure_time></measure_time>` directive to measure elapsed times. 
 
 Example:
 
 ```apache
 <source>
-  type measure # this is just to let fluentd `require` measure plugi
+  type measure_time
+  # This makes available the `masure_time` directive for all plugins
 </source>
 
 <source>
   type forward
   port 24224
-  <measure>
-    tag measure
+  <measure_time>
+    tag measure_time
     interval 60
     hook on_message
-  </measure>
+  </measure_time>
 </source>
 
-<match measure>
+<match measure_time>
   type stdout
 </match>
 ```
@@ -55,12 +56,11 @@ where `max` and `avg` are the maximum and average elapsed times, and `num` is th
 
 * tag
 
-    The output tag name. Default is `measure`
+    The output tag name. Default is `measure_time`
 
 * hook (required)
 
-    Specify the method to hook. You can also explicitly specify the class name like `Fluent::ForwardOutput.on_message`.
-    (EXCUSE: Fluentd treats strings after # as a comment, so the form like `Fluent::ForwardInput#on_message` could not be used)
+    Specify the method to measure time.
     
 ## ChangeLog
 
