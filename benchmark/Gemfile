@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+
+gem 'fluentd'
+gem 'dummer'
+gem 'fluent-plugin-keep-forward'
+gem 'fluent-plugin-flowcounter-simple'
+gem 'fluent-plugin-measure_time', path: '../'

@@ -12,3 +12,4 @@ coverage
 .yardoc
 pkg/
 .ruby-version
+*.log
