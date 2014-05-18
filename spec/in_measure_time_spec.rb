@@ -75,7 +75,8 @@ describe "extends Fluent::ForwardInput" do
     ]}
     it 'should flush' do
       d = driver.instance
-      d.__send__(:on_message, ['tag1', 0, {'a'=>1}].to_msgpack)
+      data = ['tag1', 0, {'a'=>1}].to_msgpack
+      d.__send__(:on_message, data, data.bytesize, "hi, yay!")
       triple = d.measure_time.flush(0)
       triple[0].should == 'measure_time'
       triple[2].keys.should =~ [:num, :max, :avg, :class, :hook, :object_id]
