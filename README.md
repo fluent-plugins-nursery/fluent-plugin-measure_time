@@ -42,12 +42,19 @@ Configure fluentd.conf as below:
   port 24224
 </source>
 
+# measure_time plugin output comes here
 <match measure_time>
+  type stdout
+</match>
+
+# Whatever you want to do
+<match greped.**>
   type stdout
 </match>
 
 <match **>
   type grep
+  add_tag_prefix greped
   <measure_time>
     tag measure_time
     hook emit
