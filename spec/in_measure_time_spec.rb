@@ -7,7 +7,10 @@ describe Fluent::MeasureTimeInput do
   before { Fluent::Test.setup }
 
   def create_driver(conf=%[])
-    Fluent::Test::InputTestDriver.new(Fluent::MeasureTimeInput).configure(conf)
+    d = Fluent::Test::InputTestDriver.new(Fluent::MeasureTimeInput).configure(conf)
+    unless d.respond_to?(:router)
+      d.singleton_class.send(:define_method, :router) { ::Fluent::Engine }
+    end
   end
 
   describe 'test configure' do
@@ -120,8 +123,8 @@ describe "extends Fluent::StdoutOutput" do
     it 'should flush' do
       time = Fluent::Engine.now
       Fluent::Engine.stub(:now).and_return(time)
-      Fluent::Engine.should_receive(:emit) # .with("measure_time", time, {})
       d = driver.instance
+      d.router.should_receive(:emit) # .with("measure_time", time, {})
       d.emit('tag1', Fluent::OneEventStream.new(0, {'a'=>1}), Fluent::NullOutputChain.instance)
     end
   end

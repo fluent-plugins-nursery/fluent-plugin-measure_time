@@ -4,6 +4,10 @@ module Fluent
   class MeasureTimeInput < Input
     Plugin.register_input('measure_time', self)
 
+    unless method_defined?(:router)
+      define_method(:router) { ::Fluent::Engine }
+    end
+
     def configure(conf)
       ::Fluent::Input.__send__(:include, MeasureTimable)
       ::Fluent::Output.__send__(:include, MeasureTimable)
@@ -16,6 +20,10 @@ module Fluent
         klass.__send__(:alias_method, :configure_without_measure_time, :configure)
         klass.__send__(:alias_method, :configure, :configure_with_measure_time)
       end
+
+      unless klass.method_defined?(:router)
+        define_method(:router) { ::Fluent::Engine }
+      end
     end
 
     attr_reader :measure_time
@@ -23,18 +31,19 @@ module Fluent
     def configure_with_measure_time(conf)
       configure_without_measure_time(conf)
       if element = conf.elements.select { |element| element.name == 'measure_time' }.first
-        @measure_time = MeasureTime.new(self, log)
+        @measure_time = MeasureTime.new(self, log, router)
         @measure_time.configure(element)
       end
     end
   end
 
   class MeasureTime
-    attr_reader :plugin, :log, :times, :mutex, :thread, :tag, :interval, :hook
-    def initialize(plugin, log)
+    attr_reader :plugin, :log, :router, :times, :mutex, :thread, :tag, :interval, :hook
+    def initialize(plugin, log, router)
       @plugin = plugin
       @klass = @plugin.class
       @log = log
+      @router = router
       @times = []
       @mutex = Mutex.new
     end
@@ -56,7 +65,7 @@ module Fluent
           # emit information immediately
           Proc.new {|elapsed|
             msg = {:time => elapsed}.merge(@hook_msg)
-            ::Fluent::Engine.emit(@tag, ::Fluent::Engine.now, msg)
+            router.emit(@tag, ::Fluent::Engine.now, msg)
           }
         end
       apply_hook
@@ -101,10 +110,10 @@ EOF
     end
 
     def run
-      @last_checked ||= Engine.now
+      @last_checked ||= ::Fluent::Engine.now
       while (sleep 0.5)
         begin
-          now = Engine.now
+          now = ::Fluent::Engine.now
           if now - @last_checked >= @interval
             flush(now)
             @last_checked = now
@@ -127,7 +136,7 @@ EOF
         max = num == 0 ? 0 : times.max
         avg = num == 0 ? 0 : times.map(&:to_f).inject(:+) / num.to_f
         triple = [@tag, now, {:max => max, :avg => avg, :num => num}.merge(@hook_msg)]
-        Engine.emit(*triple)
+        router.emit(*triple)
       end
       triple
     end
