@@ -81,8 +81,8 @@ describe "extends Fluent::ForwardInput" do
       data = ['tag1', 0, {'a'=>1}].to_msgpack
       d.__send__(:on_message, data, data.bytesize, "hi, yay!")
       triple = d.measure_time.flush(0)
-      triple[0].should == 'measure_time'
-      triple[2].keys.should =~ [:num, :max, :avg, :class, :hook, :object_id]
+      expect(triple[0]).to eql('measure_time')
+      expect(triple[2].keys).to eql([:max, :avg, :num, :class, :hook, :object_id])
     end
   end
 end
@@ -122,9 +122,9 @@ describe "extends Fluent::StdoutOutput" do
     ]}
     it 'should flush' do
       time = Fluent::Engine.now
-      Fluent::Engine.stub(:now).and_return(time)
+      allow(Fluent::Engine).to receive(:now) { time }
       d = driver.instance
-      d.router.should_receive(:emit) # .with("measure_time", time, {})
+      expect(d.router).to receive(:emit) # .with("measure_time", time, {})
       d.emit('tag1', Fluent::OneEventStream.new(0, {'a'=>1}), Fluent::NullOutputChain.instance)
     end
   end
@@ -141,8 +141,8 @@ describe "extends Fluent::StdoutOutput" do
       d = driver.instance
       d.emit('tag1', Fluent::OneEventStream.new(0, {'a'=>1}), Fluent::NullOutputChain.instance)
       triple = d.measure_time.flush(0)
-      triple[0].should == 'measure_time'
-      triple[2].keys.should =~ [:num, :max, :avg, :class, :hook, :object_id]
+      expect(triple[0]).to eql('measure_time')
+      expect(triple[2].keys).to eql([:max, :avg, :num, :class, :hook, :object_id])
     end
   end
 end
