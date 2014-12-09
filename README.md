@@ -34,7 +34,7 @@ Configure fluentd.conf as below:
 ```apache
 <source>
   type measure_time
-  # This makes available the `masure_time` directive for all plugins
+  # This makes available the `measure_time` directive for all plugins
 </source>
 
 <source>
@@ -117,7 +117,7 @@ The configuration will be as follows:
 ```apache
 <source>
   type measure_time
-  # This makes available the `masure_time` directive for all plugins
+  # This makes available the `measure_time` directive for all plugins
 </source>
 
 <source>
