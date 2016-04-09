@@ -31,6 +31,8 @@ Use RubyGems:
 As an example, let's profile how long the [emit](https://github.com/sonots/fluent-plugin-grep/blob/master/lib/fluent/plugin/out_grep.rb#L56) method of [fluent-plugin-grep](https://github.com/sonots/fluent-plugin-grep) is taking.
 Configure fluentd.conf as below:
 
+For Fluentd v0.10:
+
 ```apache
 <source>
   type measure_time
@@ -59,7 +61,43 @@ Configure fluentd.conf as below:
     tag measure_time
     hook emit
   </measure_time>
+</match>
+```
+
+For Fluentd v0.12:
+
+```apache
+<label @measure_time>
+  <match>
+    @type measure_time
+    # This makes available the `measure_time` directive for all plugins
+  </match>
+</label>
+
+<source>
+  @type dummy
+  tag raw.dummy
+  dummy {"message":"foo"}
 </source>
+
+# measure_time plugin output comes here
+<match measure_time>
+  @type stdout
+</match>
+
+# Whatever you want to do
+<match greped.**>
+  @type stdout
+</match>
+
+<match **>
+  @type grep
+  add_tag_prefix greped
+  <measure_time>
+    tag measure_time
+    hook emit
+  </measure_time>
+</match>
 ```
 
 The output of fluent-plugin-measure_time will be as below:
@@ -114,6 +152,8 @@ This profiling is very useful to investigate when you have a suspicion that thro
 
 The configuration will be as follows:
 
+For Fluentd v0.10:
+
 ```apache
 <source>
   type measure_time
@@ -136,6 +176,35 @@ The configuration will be as follows:
 # whatever you want
 <match **>
   type stdout
+</match>
+```
+
+For Fluentd v0.12:
+
+```apache
+<label @measure_time>
+  <match>
+    @type measure_time
+    # This makes available the `measure_time` directive for all plugins
+  </match>
+</match>
+
+<source>
+  @type forward
+  port 24224
+  <measure_time>
+    tag measure_time
+    hook on_message
+  </measure_time>
+</source>
+
+<match measure_time>
+  @type stdout
+</match>
+
+# whatever you want
+<match **>
+  @type stdout
 </match>
 ```
 
