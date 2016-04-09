@@ -13,7 +13,7 @@ module Fluent
       ::Fluent::Output.__send__(:include, MeasureTimable)
     end
 
-    def emit(tag, time, msg)
+    def emit(tag, es, chain)
     end
   end
 end
