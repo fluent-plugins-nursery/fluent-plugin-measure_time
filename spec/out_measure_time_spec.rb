@@ -3,11 +3,11 @@ require_relative 'spec_helper'
 require 'fluent/plugin/in_forward'
 require 'fluent/plugin/out_stdout'
 
-describe Fluent::MeasureTimeInput do
+describe Fluent::MeasureTimeOutput do
   before { Fluent::Test.setup }
 
   def create_driver(conf=%[])
-    d = Fluent::Test::InputTestDriver.new(Fluent::MeasureTimeInput).configure(conf)
+    d = Fluent::Test::InputTestDriver.new(Fluent::MeasureTimeOutput).configure(conf)
     unless d.respond_to?(:router)
       d.singleton_class.send(:define_method, :router) { ::Fluent::Engine }
     end
@@ -22,7 +22,7 @@ describe "extends Fluent::ForwardInput" do
   before { Fluent::Test.setup }
 
   def create_driver(conf=CONFIG)
-    Fluent::MeasureTimeInput.new.configure("")
+    Fluent::MeasureTimeOutput.new.configure("")
     Fluent::Test::InputTestDriver.new(Fluent::ForwardInput).configure(conf)
   end
 
