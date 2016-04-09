@@ -1,3 +1,9 @@
+## 0.2.1  (2016/04/09)
+
+Enhancements:
+
+* raise ConfigError for <source></source> with v0.12
+
 ## 0.2.0  (2016/04/09)
 
 Enhancements:
