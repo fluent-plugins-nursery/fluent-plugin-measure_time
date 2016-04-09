@@ -2,7 +2,7 @@
 
 Enhancements:
 
-* raise ConfigError for <source></source> with v0.12
+* raise ConfigError to use `<label @measure_time><match></match></label>` instead of `<source></source>` for Fluentd v0.12.
 
 ## 0.2.0  (2016/04/09)
 
