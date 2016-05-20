@@ -2,5 +2,4 @@ source "http://rubygems.org"
 
 gemspec
 gem 'fluentd', '~> 0.10.0'
-gem 'test-unit'
 gem 'fluent-plugin-grep'
